@@ -49,7 +49,7 @@ jobs:
 
       - name: Build Android Release
         run: |
-          npm run clean && cd mobile/android && ./gradlew assembleRelease
+          cd mobile && npm run clean && cd android && ./gradlew assembleRelease
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
