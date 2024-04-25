@@ -45,11 +45,11 @@ jobs:
 
       - name: Grant execute permission for Gradle Wrapper
         run: chmod +x ./gradlew
-        working-directory: ./android
+        working-directory: ./mobile/android
 
       - name: Build Android Release
         run: |
-          npm run clean &&cd mobile/android && ./gradlew assembleRelease
+          npm run clean && cd mobile/android && ./gradlew assembleRelease
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
