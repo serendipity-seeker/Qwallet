@@ -27,9 +27,13 @@ jobs:
         run: |
           cd mobile && npm install
 
+      - name: Grant execute permission on gradlew
+        run: chmod +x ./gradlew
+        working-directory: mobile/android
+        
       - name: Build Android Release
-        run: |
-          cd mobile/android && ./gradlew assembleRelease
+        run: ./gradlew assembleRelease
+        working-directory: mobile/android
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
