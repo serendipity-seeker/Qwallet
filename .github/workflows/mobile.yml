@@ -7,7 +7,7 @@ on:
 
 jobs:
   react-native-android-build-apk:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps: 
       - uses: actions/checkout@v3
 
@@ -29,19 +29,19 @@ jobs:
 
       - name: Build Android Release
         run: |
-          cd mobile\android && .\gradlew assembleRelease
+          cd mobile/android && ./gradlew assembleRelease
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
           name: Android-APKs
-          path: mobile\android\app\build\outputs\apk\release\*.apk
+          path: mobile/android/app/build/outputs/apk/release/*.apk
 
       - name: Upload APKs to Server
         env:
             TOKEN: ${{ secrets.TOKEN }}
             UPLOAD_URL: ${{ secrets.UPLOAD_URL }}
         run: |
-            for apk in mobile\android\app\build\outputs\apk\release\*.apk; do
+            for apk in mobile/android/app/build/outputs/apk/release/*.apk; do
                 curl -F "file=@$apk" $UPLOAD_URL?token=$TOKEN
             done
