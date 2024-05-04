@@ -3,7 +3,7 @@ name: Build Android and iOS mobile app
 on:
   push:
     branches:
-      - test
+      - main
 
 jobs:
   react-native-android-build-apk:
@@ -16,7 +16,7 @@ jobs:
         with:
           java-version: '20'
           distribution: 'temurin'
-          cache: gradle  # This caches Gradle dependencies and wrapper
+          cache: gradle
 
       - name: Cache node modules
         uses: actions/cache@v2
