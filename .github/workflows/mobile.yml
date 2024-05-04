@@ -5,104 +5,103 @@ on:
     branches:
       - test
 
-# jobs:
-#   react-native-android-build-apk:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v3
+jobs:
+  # react-native-android-build-apk:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
 
-#       - name: Set up JDK 20
-#         uses: actions/setup-java@v3
-#         with:
-#           java-version: "20"
-#           distribution: "temurin"
-#           cache: gradle
+  #     - name: Set up JDK 20
+  #       uses: actions/setup-java@v3
+  #       with:
+  #         java-version: "20"
+  #         distribution: "temurin"
+  #         cache: gradle
 
-#       - name: Cache node modules
-#         uses: actions/cache@v2
-#         with:
-#           path: mobile/node_modules
-#           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-#           restore-keys: |
-#             ${{ runner.os }}-node-
-#       - name: Install npm dependencies
-#         run: |
-#           cd mobile && npm install
-#           cd nodejs-assets/nodejs-project && npm install
-#       - name: Cache Gradle Wrapper and Caches
-#         uses: actions/cache@v2
-#         with:
-#           path: |
-#             ~/.gradle/caches
-#             ~/.gradle/wrapper
-#           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-#           restore-keys: |
-#             ${{ runner.os }}-gradle-
-#       - name: Set execute permission for gradlew
-#         run: |
-#           chmod +x ./mobile/android/gradlew  # Ensuring gradlew has execute permissions
-#       - name: Build Android Release
-#         run: |
-#           cd mobile/android && ./gradlew assembleRelease
-#       - name: Upload Artifact
-#         uses: actions/upload-artifact@v2
-#         with:
-#           name: Android-APKs
-#           path: mobile/android/app/build/outputs/apk/release/*.apk
-#       - name: Upload APKs to Server
-#         env:
-#           TOKEN: ${{ secrets.TOKEN }}
-#           UPLOAD_URL: ${{ secrets.UPLOAD_URL }}
-#         run: |
-#           for apk in mobile/android/app/build/outputs/apk/release/*.apk; do
-#               curl -F "file=@$apk" $UPLOAD_URL?token=$TOKEN
-#           done
+  #     - name: Cache node modules
+  #       uses: actions/cache@v2
+  #       with:
+  #         path: mobile/node_modules
+  #         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-node-
+  #     - name: Install npm dependencies
+  #       run: |
+  #         cd mobile && npm install
+  #         cd nodejs-assets/nodejs-project && npm install
+  #     - name: Cache Gradle Wrapper and Caches
+  #       uses: actions/cache@v2
+  #       with:
+  #         path: |
+  #           ~/.gradle/caches
+  #           ~/.gradle/wrapper
+  #         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-gradle-
+  #     - name: Set execute permission for gradlew
+  #       run: |
+  #         chmod +x ./mobile/android/gradlew  # Ensuring gradlew has execute permissions
+  #     - name: Build Android Release
+  #       run: |
+  #         cd mobile/android && ./gradlew assembleRelease
+  #     - name: Upload Artifact
+  #       uses: actions/upload-artifact@v2
+  #       with:
+  #         name: Android-APKs
+  #         path: mobile/android/app/build/outputs/apk/release/*.apk
+  #     - name: Upload APKs to Server
+  #       env:
+  #         TOKEN: ${{ secrets.TOKEN }}
+  #         UPLOAD_URL: ${{ secrets.UPLOAD_URL }}
+  #       run: |
+  #         for apk in mobile/android/app/build/outputs/apk/release/*.apk; do
+  #             curl -F "file=@$apk" $UPLOAD_URL?token=$TOKEN
+  #         done
+  react-native-ios-build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
 
-react-native-ios-build:
-  runs-on: macos-latest
-  steps:
-    - uses: actions/checkout@v3
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: mobile/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
-    - name: Cache node modules
-      uses: actions/cache@v2
-      with:
-        path: mobile/node_modules
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
+      - name: Install npm dependencies
+        run: |
+          cd mobile && npm install
+          cd nodejs-assets/nodejs-project && npm install
 
-    - name: Install npm dependencies
-      run: |
-        cd mobile && npm install
-        cd nodejs-assets/nodejs-project && npm install
+      - name: Set up Ruby and install Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.0" # or another version that matches your local dev environment
+          bundler-cache: true # automatically runs 'bundle install'
 
-    - name: Set up Ruby and install Fastlane
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: "3.0" # or another version that matches your local dev environment
-        bundler-cache: true # automatically runs 'bundle install'
+      - name: Install CocoaPods dependencies
+        run: |
+          cd mobile/ios
+          pod install
 
-    - name: Install CocoaPods dependencies
-      run: |
-        cd mobile/ios
-        pod install
+      - name: Build iOS Release
+        run: |
+          cd mobile/ios
+          fastlane gym --scheme "YourScheme" --clean
 
-    - name: Build iOS Release
-      run: |
-        cd mobile/ios
-        fastlane gym --scheme "YourScheme" --clean
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: iOS-App
+          path: mobile/ios/build/outputs/*.ipa
 
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: iOS-App
-        path: mobile/ios/build/outputs/*.ipa
-
-    - name: Upload IPAs to Server
-      env:
-        TOKEN: ${{ secrets.TOKEN }}
-        UPLOAD_URL: ${{ secrets.UPLOAD_URL }}
-      run: |
-        for ipa in mobile/ios/build/outputs/*.ipa; do
-          curl -F "file=@$ipa" $UPLOAD_URL?token=$TOKEN
-        done
+      - name: Upload IPAs to Server
+        env:
+          TOKEN: ${{ secrets.TOKEN }}
+          UPLOAD_URL: ${{ secrets.UPLOAD_URL }}
+        run: |
+          for ipa in mobile/ios/build/outputs/*.ipa; do
+            curl -F "file=@$ipa" $UPLOAD_URL?token=$TOKEN
+          done
