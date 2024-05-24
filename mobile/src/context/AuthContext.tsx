@@ -7,6 +7,7 @@ import {
   setTokenprices,
   setTokens,
 } from "@app/redux/appSlice";
+import local from "@app/utils/locales";
 import {
   ReactNode,
   createContext,
@@ -62,6 +63,7 @@ interface AuthContextType {
     }>
   >;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setPrevBalances: React.Dispatch<React.SetStateAction<Balances>>;
 }
 
 type TransactionItem = [string, string, string, string, string, string];
@@ -78,15 +80,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [histories, setHistories] = useState<TransactionItem[]>([]);
   const [txStatus, setTxStatus] = useState<
     "Open" | "Closed" | "Rejected" | "Pending" | "Success"
-  >("Pending");
+  >("Closed");
   const [txId, setTxId] = useState<string>("");
   const [expectedTick, setExpectedTick] = useState<number>(0);
-  const [txResult, setTxResult] = useState<string>("");
+  const [txResult, setTxResult] = useState<string>("Unknown");
   const [tokenBalances, setTokenBalances] = useState<{
     [name: string]: Balances;
   }>({});
   const [statusInterval, setStatusInterval] = useState<any>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const [outTx, setOutTx] = useState(false);
+  const [prevBalances, setPrevBalances] = useState<Balances>({});
+  const [historyNum, setHistoryNum] = useState(histories.length);
+  const [expectingHistoryUpdate, setExpectingHistoryUpdate] = useState(false);
+
+  const lang = local.Toast;
 
   const login = (userDetails: UserDetailType | null) => {
     setUser(userDetails);
@@ -98,10 +107,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     dispatch(setIsAuthenticated(false));
     dispatch(setPassword(""));
+    setTempPassword("");
     setUser(null);
+    setBalances({});
+    setCurrentAddress("");
+    setAllAddresses([]);
+    setHistories([]);
+    setTxStatus("Closed");
+    setTxId("");
+    setExpectedTick(0);
+    setTxResult("");
+    setTokenBalances({});
+    setIsLoading(false);
   };
 
   useEffect(() => {
+    setTokens([]);
     if (currentAddress != "") {
       setIsLoading(true);
       getHistory(currentAddress);
@@ -109,12 +130,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [currentAddress]);
 
+  // If someone send qu to me
+  useEffect(() => {
+    if (currentAddress == "") return;
+    if (Object.is(prevBalances, {})) return;
+    if (!balances[currentAddress] || !prevBalances[currentAddress]) return;
+    if (balances[currentAddress] > prevBalances[currentAddress]) setOutTx(true);
+    else setOutTx(false);
+    setHistoryNum(histories.length + 1);
+    getHistory(currentAddress);
+    setExpectingHistoryUpdate(true);
+  }, [balances[currentAddress]]);
+
   useEffect(() => {
     if (user?.accountInfo) {
       setCurrentAddress(user?.accountInfo.addresses[0]);
       setAllAddresses(user?.accountInfo.addresses);
     }
   }, [user]);
+
+  useEffect(() => {
+    if (expectingHistoryUpdate && currentAddress !== "") {
+      const interval = setInterval(() => {
+        if (histories.length !== historyNum) {
+          getHistory(currentAddress);
+        } else {
+          const newHistory = histories.reverse()[0];
+          if (outTx)
+            Toast.show({
+              type: "info",
+              text1: lang.ReceivedQUFrom.replace(
+                "{amount}",
+                `${Math.abs(parseInt(newHistory[3]))}`
+              ).replace("{address}", newHistory[2]),
+            });
+          setExpectingHistoryUpdate(false); // Clear the flag when history is up-to-date
+          clearInterval(interval); // Clear the interval when done
+        }
+      }, 1500);
+
+      return () => clearInterval(interval);
+    }
+  }, [histories.length, historyNum, currentAddress, expectingHistoryUpdate]);
 
   useEffect(() => {
     const handleHistoryEvent = (res: any) => {
@@ -134,7 +191,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } else {
         Toast.show({
           type: "error",
-          text1: "E21: " + "Error ocurred in getting tokens!",
+          text1: "E-21: " + lang.ErrorGettingToken,
         });
       }
     };
@@ -147,7 +204,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } else {
         Toast.show({
           type: "error",
-          text1: "E22: " + "Error occured in transfer!",
+          text1: "E-22: " + lang.ErrorTransfer,
         });
         setTxStatus("Rejected");
       }
@@ -157,17 +214,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (res.data) {
         if (res.data == "failed") {
           setTxStatus("Rejected");
-          Toast.show({ type: "error", text1: "E23: " + "Transfer Failed!" });
+          setTxResult("Failed");
+          Toast.show({ type: "error", text1: "E-23: " + lang.TransferFailed });
         } else if (res.data.value.result == 0) {
           setTxStatus("Pending");
+          setTxResult("Pending");
         } else if (res.data.value.result == 1) {
           setTxResult(res.data.value.display);
         } else {
           setTxStatus("Rejected");
         }
       } else {
-        Toast.show({ type: "error", text1: "E24: Transfer Failed!" });
+        Toast.show({ type: "error", text1: "E-24: " + lang.TransferFailed });
         setTxStatus("Rejected");
+        setTxResult("Pending");
         clearInterval(statusInterval);
       }
     };
@@ -181,7 +241,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else if (res.data.value.result < 0) {
           Toast.show({
             type: "error",
-            text1: "E25: " + res.data.value.display,
+            text1: "E-25: " + res.data.value.display,
           });
         } else if (res.data.value.result == 1) {
           setTxStatus(res.data.value.display);
@@ -214,17 +274,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setTxStatus("Success");
       Toast.show({
         type: "success",
-        text1: "Transaction Completed Successfully!",
+        text1: lang.TransactionCompleted,
       });
       clearInterval(statusInterval);
     }
   }, [txResult]);
-
-  // useEffect(() => {
-  //   setTokenBalances((prev) => {
-  //     return { ...prev, QU: balances };
-  //   });
-  // }, [balances]);
 
   return (
     <AuthContext.Provider
@@ -250,6 +304,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setExpectedTick,
         setTokenBalances,
         setIsLoading,
+        setPrevBalances,
       }}
     >
       {children}

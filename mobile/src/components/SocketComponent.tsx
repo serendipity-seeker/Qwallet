@@ -11,8 +11,13 @@ import { useAuth } from "@app/context/AuthContext";
 
 export const SocketCom: React.FC = () => {
   const dispatch = useDispatch();
-  const { setBalances, setTokenBalances, allAddresses, setIsLoading } =
-    useAuth();
+  const {
+    setBalances,
+    setTokenBalances,
+    allAddresses,
+    balances,
+    setPrevBalances,
+  } = useAuth();
   useEffect(() => {
     eventEmitter.on("S2C/live", (res) => {
       if (res.data.command == "CurrentTickInfo") {
@@ -34,6 +39,7 @@ export const SocketCom: React.FC = () => {
 
         if (res.data.balance) {
           setBalances((prev) => {
+            setPrevBalances(prev);
             return {
               ...prev,
               [res.data.address]: parseFloat(res.data.balance),
@@ -44,6 +50,7 @@ export const SocketCom: React.FC = () => {
         res.data.balances.map((balance: [number, string]) => {
           if (balance[0] < allAddresses.length)
             setBalances((prev) => {
+              setPrevBalances(prev);
               return {
                 ...prev,
                 [allAddresses[balance[0]]]: parseFloat(balance[1]),
@@ -55,8 +62,15 @@ export const SocketCom: React.FC = () => {
       } else if (res.data.price) {
         // This maybe changed by server
         dispatch(setMarketcap(res.data));
-      } else if (res.data.tokenprices) {
-        dispatch(setTokenprices(res.data.tokenprices));
+      }
+      if (res.data) {
+        const allEntriesAreArraysOfLengthTwo = Object.values(res.data).every(
+          (entry) => Array.isArray(entry) && entry.length === 2
+        );
+
+        if (allEntriesAreArraysOfLengthTwo) {
+          dispatch(setTokenprices(res.data));
+        }
       }
     });
   }, []);

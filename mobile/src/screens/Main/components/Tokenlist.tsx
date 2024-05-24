@@ -57,7 +57,7 @@ const Tokenlist: React.FC = () => {
                 </HStack>
                 <VStack>
                   <Text>{valueInQU} QU</Text>
-                  <Text>$ {usdValue.toFixed(2)}</Text>
+                  <Text>$ {usdValue.toFixed(7)}</Text>
                 </VStack>
               </HStack>
             </Pressable>
@@ -65,7 +65,7 @@ const Tokenlist: React.FC = () => {
         })}
       </>
     );
-  }, [tokenBalances, tokenprices, marketcap, tokens]);
+  }, [tokenBalances, tokenprices, marketcap?.price, tokens]);
 
   return (
     <>
@@ -73,18 +73,16 @@ const Tokenlist: React.FC = () => {
         <VStack flex={1} alignItems="center" justifyContent="center">
           <ActivityIndicator size="large" color={main.celestialBlue} />
         </VStack>
-      ) : Object.keys(tokenBalances).length === 0 ? (
-        <VStack flex={1} alignItems="center" justifyContent="center">
-          <VStack>
-            <Center>
-              <Icon as={AntDesign} name="questioncircle" size={20}></Icon>
-              <Text color={textColor} fontSize="md" mt="4">
-                {lang.NoAssets}
-              </Text>
-            </Center>
-          </VStack>
-        </VStack>
       ) : (
+        // ) : Object.keys(tokenBalances).length === 0 ? (
+        //   <VStack flex={1} alignItems="center" justifyContent="center">
+        //     <Center>
+        //       <Icon as={AntDesign} name="questioncircle" size={20}></Icon>
+        //       <Text color={textColor} fontSize="md" mt="4">
+        //         {lang.NoAssets}
+        //       </Text>
+        //     </Center>
+        //   </VStack>
         <ScrollView px="1" py="2">
           <Box>{formattedItems}</Box>
         </ScrollView>

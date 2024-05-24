@@ -8,7 +8,7 @@ import React, {
     SetStateAction,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import { MODES, SERVER_URL, assetsItems, sideBarItems } from "../utils/constants";
+import { EXPECTEDTICKGAP, MODES, SERVER_URL, assetsItems, sideBarItems } from "../utils/constants";
 import { io, Socket } from "socket.io-client";
 import axios from "axios";
 import {
@@ -17,11 +17,11 @@ import {
     ModeProps,
     OrderInterface,
     RichListInterface,
+    TokenPriceInterface,
 } from "../utils/interfaces";
 import { toast } from "react-toastify";
 import { Loading } from "../components/commons";
 import { TokenOption } from "../components/commons/Select";
-import { mockOrders } from "../utils/mock";
 
 interface AuthContextType {
     isAuthenticated: boolean;
@@ -47,6 +47,7 @@ interface AuthContextType {
     txStatus: string;
     txId: string;
     expectedTick: number;
+    tokenPrices: TokenPriceInterface;
     setTxStatus: Dispatch<SetStateAction<string>>;
     setCurrentToken: Dispatch<SetStateAction<TokenOption>>;
     fetchTradingInfoPage: () => Promise<void>;
@@ -90,6 +91,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     const [activeTabIdx, setActiveTabIdx] = useState(0);
     const [accountInfo, setAccountInfo] = useState<AccountInfoInterface>();
     const [totalBalance, setTotalBalance] = useState<string>('0');
+    const [tokenPrices, setTokenprices] = useState<TokenPriceInterface>({});
     // const [totalBalance, setTotalBalance] = useState<string>('0');
 
     const [tick, setTick] = useState("0");
@@ -276,6 +278,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
                     });
             });
             setMarketcap(data.marketcap);
+            setTokenprices({ ...data.tokenPrices, 'QU': [1, 1] });
             setTokens(["QU", ...(data?.tokens || [])]);
             setRichlist(data.richlist);
         } else {
@@ -284,18 +287,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
 
     const fetchTradingInfoPage = async (): Promise<any> => {
         setTradingPageLoading(true);
-        // let orders;
-        // try {
-        //     const resp = await axios.post(`${SERVER_URL}/api/trading-page-info`, {
-        //         token: currentToken.value
-        //     });
-        //     orders = resp.data;
-        // } catch (error) {
-        //     orders = [];
-        // }
-        setOrders(mockOrders)
+        let orders;
+        try {
+            const resp = await axios.post(`${SERVER_URL}/api/trading-page-info`, {
+                token: currentToken.value
+            });
+            orders = resp.data;
+        } catch (error) {
+            orders = [];
+        }
+        setOrders(orders)
         setTradingPageLoading(false);
-        return mockOrders;
+        return orders;
     }
 
     const handleBuyCell = async (flag: 'buy' | 'sell' | 'cancelbuy' | 'cancelsell', amount: string, price: string): Promise<any> => {
@@ -303,7 +306,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
             flag,
             password,
             index: accountInfo?.addresses.indexOf(currentAddress),
-            tick: parseInt(tick) + 10,
+            tick: parseInt(tick) + EXPECTEDTICKGAP,
             currentToken: currentToken.value,
             amount,
             price,
@@ -455,6 +458,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
                 txStatus,
                 txId,
                 expectedTick,
+                tokenPrices,
                 setTxStatus,
                 fetchTradingInfoPage,
                 setCurrentToken,
