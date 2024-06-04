@@ -741,7 +741,7 @@ int32_t wssupdate(char *jsonstr)
                         memset(&PENDINGTX,0,sizeof(PENDINGTX));
                     }
                 }
-                else if ( PENDINGTX.txtype == 0 )
+                /*else if ( PENDINGTX.txtype == 0 )
                 {
                     strcpy(PENDINGSTATUS,"pending send failed, resending");
                     printf("PENDINGTX failed, resend\n");
@@ -763,10 +763,10 @@ int32_t wssupdate(char *jsonstr)
                     PENDINGTX.beforetick = PENDINGTX.aftertick = 0;
                     PENDINGTX.beforeinputs = PENDINGTX.beforeoutputs = PENDINGTX.afterinputs = PENDINGTX.afteroutputs = 0;
                     printf("resend %s\n",_sendfunc(argv,argc,PENDINGTX.txtype));
-                }
+                }*/
                 else
                 {
-                    printf("PENDINGTX failed, resend\n");
+                    printf("PENDINGTX failed, do not resend\n");
                     memset(PENDINGTX.txid,0,sizeof(PENDINGTX.txid));
                 }
                 printf("%s\n%s\n",PENDINGSTATUS,PENDINGRESULT);
@@ -792,11 +792,10 @@ int32_t wssupdate(char *jsonstr)
         if ( tick > LATEST_TICK )
         {
             LATEST_TICK = tick;
-            if ( tick > PENDINGTX.pendingtick+20 )
+            if ( tick > PENDINGTX.pendingtick+2 )
             {
                 memset(&PENDINGTX,0,sizeof(PENDINGTX));
                 strcpy(PENDINGSTATUS,"pending send failed, but not resending due to timeout");
-                strcpy(PENDINGRESULT,"pending send failed, but not resending due to timeout");
             }
         }
         //printf("current tick.%d latest.%d\n",tick,LATEST_TICK);
@@ -917,9 +916,4 @@ int main()
     return(0);
 }
 #endif
-
-// tokensend
-// buy + sell
-// cancel order
-
     
