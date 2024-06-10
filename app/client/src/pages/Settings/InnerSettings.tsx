@@ -2,6 +2,7 @@ import { Select, Text } from "../../components/commons";
 import { SettingsItems } from "../../enums/SettingsItems";
 import { MODES, currencies } from "../../utils/constants";
 import { ActiveItems } from "./Settings";
+import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/solid";
 
 type InnerSettingsProps = {
     activeItem: ActiveItems;
@@ -90,9 +91,10 @@ const InnerSettings = ({ activeItem }: InnerSettingsProps) => {
                             </Text>
                         </div>
 
-                        <button className="px-7 py-1.5 font-Inter font-medium text-xs border border-white rounded-md outline-none hover:bg-white/5 transition-all duration-200">
+                        <a href="https://qubic.org/Terms-of-service" target="_blank" rel="noopener noreferrer" className="px-7 py-1.5 font-Inter font-medium text-xs border border-white rounded-md outline-none hover:bg-white/5 transition-all duration-200 flex">
                             Term of Service
-                        </button>
+                            <ArrowTopRightOnSquareIcon className="h-4 pl-4" />
+                        </a>
 
                         <div className="absolute -bottom-4 w-full">
                             <div className="w-full h-[0.5px] bg-inactive"></div>
@@ -108,9 +110,10 @@ const InnerSettings = ({ activeItem }: InnerSettingsProps) => {
                             </Text>
                         </div>
 
-                        <button className="px-7 py-1.5 font-Inter font-medium text-xs border border-white rounded-md outline-none hover:bg-white/5 transition-all duration-200">
+                        <a href="https://qubic.org/Privacy-policy" target="_blank" rel="noopener noreferrer" className="px-7 py-1.5 font-Inter font-medium text-xs border border-white rounded-md outline-none hover:bg-white/5 transition-all duration-200 flex">
                             Privacy Policy
-                        </button>
+                            <ArrowTopRightOnSquareIcon className="h-4 pl-4" />
+                        </a>
 
                         <div className="absolute -bottom-4 w-full">
                             <div className="w-full h-[0.5px] bg-inactive"></div>
@@ -126,9 +129,10 @@ const InnerSettings = ({ activeItem }: InnerSettingsProps) => {
                             </Text>
                         </div>
 
-                        <button className="px-7 py-1.5 font-Inter font-medium text-xs border border-white rounded-md outline-none hover:bg-white/5 transition-all duration-200">
+                        <a href="https://qubic.org/" target="_blank" rel="noopener noreferrer" className="px-7 py-1.5 font-Inter font-medium text-xs border border-white rounded-md outline-none hover:bg-white/5 transition-all duration-200 flex">
                             Visit Website
-                        </button>
+                            <ArrowTopRightOnSquareIcon className="h-4 pl-4" />
+                        </a>
 
                         <div className="absolute -bottom-4 w-full">
                             <div className="w-full h-[0.5px] bg-inactive"></div>
