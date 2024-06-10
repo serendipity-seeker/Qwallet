@@ -37,6 +37,7 @@ interface AuthContextType {
     richlist: RichListInterface;
     currentAddress: string;
     tokenBalances: { [name: string]: Balances };
+    portfolio: Balances;
     totalBalance: string;
     recoverStatus: boolean;
     mode: ModeProps;
@@ -70,7 +71,7 @@ interface AuthContextType {
     handleClickSideBar: (idx: number) => void;
 }
 interface Balances {
-    [address: string]: number;
+    [address: string]: bigint;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -96,6 +97,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     const [totalBalance, setTotalBalance] = useState<string>('0');
     const [tokenPrices, setTokenprices] = useState<TokenPriceInterface>({});
     // const [totalBalance, setTotalBalance] = useState<string>('0');
+    const [portfolio, setPortfolio] = useState<any>({})
 
     const [tick, setTick] = useState("0");
     const [balances, setBalances] = useState<Balances>({});
@@ -276,7 +278,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
                     setBalances((prev) => {
                         return {
                             ...prev,
-                            [data.accountInfo?.addresses[item[0]]]: parseFloat(
+                            [data.accountInfo?.addresses[item[0]]]: BigInt(
                                 item[1]
                             ),
                         };
@@ -287,7 +289,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
             setTokens(["QU", ...(data?.tokens || [])]);
             setRichlist(data.richlist);
             setTick(data.networkResp.latest)
-            console.log(data, 'bbbbbbbbbbbbbbbbbb')
         } else {
         }
     };
@@ -326,7 +327,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
                 flag,
                 password,
                 index: accountInfo?.addresses.indexOf(currentAddress),
-                tick: parseInt(tick) + EXPECTEDTICKGAP,
+                tick: tick + EXPECTEDTICKGAP,
                 currentToken: tokenName,
                 amount,
                 price,
@@ -349,17 +350,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
             if (data.command == "CurrentTickInfo") {
                 setTick(data.tick);
             } else if (data.command == "EntityInfo") {
-                // console.log(data.balance, 1);
                 if (data.address)
                     setBalances((prev) => {
                         return {
                             ...prev,
-                            [data.address]: parseFloat(data.balance),
+                            [data.address]: BigInt(data.balance),
                         };
                     });
                 if (data.tokens) {
                     data.tokens.map((item: [string, string]) => {
-                        setTokenBalances((prev) => { return { ...prev, [item[0]]: { [data.address]: parseInt(item[1]) } } })
+                        setTokenBalances((prev) => { return { ...prev, [item[0]]: { ...prev[item[0]], [data.address]: BigInt(item[1]) } } })
                     })
                 }
             } else if (data.balances) {
@@ -367,7 +367,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
                 data.balances.map((item: [number, string]) => {
                     if (data[0])
                         setBalances((prev) => {
-                            return { ...prev, [data[0]]: parseFloat(item[1]) };
+                            return { ...prev, [data[0]]: BigInt(item[1]) };
                         });
                 });
             } else if (data.richlist) {
@@ -375,7 +375,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
                     return { ...prev, [data.name]: data.richlist };
                 });
             } else if (data.marketcap) {
-                console.log(data.marketcap, 4);
             }
         });
 
@@ -426,6 +425,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
 
     useEffect(() => {
         updateUserState({ currentAddress })
+        //Getting token addresses
+        if (accountInfo?.numaddr)
+            for (let index = 0; index < accountInfo?.numaddr; index++) {
+        console.log("SENDING__" + accountInfo.addresses[index])
+                axios.post(`${SERVER_URL}/api/call-socket`, accountInfo.addresses[index])
+            }
+
     }, [currentAddress])
 
     useEffect(() => {
@@ -446,6 +452,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
         checkAuthenticated();
     }, [])
 
+    useEffect(() => {
+        let tmp: Balances = {};
+
+        Object.keys(tokenBalances).forEach((token) => {
+            const tokenPrice = BigInt(tokenPrices?.[token]?.[0] || 0);
+
+            Object.keys(tokenBalances[token]).forEach((addr) => {
+                const balance = BigInt(tokenBalances?.[token]?.[addr] || 0);
+
+                if (tmp[addr] !== undefined) {
+                    tmp[addr] += balance * tokenPrice;
+                } else {
+                    tmp[addr] = balance * tokenPrice;
+                }
+
+            });
+        });
+
+        setPortfolio(tmp);
+    }, [tokenBalances, tokenPrices]);
+
     return (
         <AuthContext.Provider
             value={{
@@ -461,6 +488,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
                 tick,
                 balances,
                 totalBalance,
+                portfolio,
                 mode,
                 tokenBalances,
                 currentAddress,

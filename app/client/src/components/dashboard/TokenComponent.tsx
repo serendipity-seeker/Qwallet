@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { assetsItems } from "../../utils/constants";
 
 interface TokensProps {
-    onSend: (token: AssetItemProps) => void
+    onSend: (token: AssetItemProps, tokenName: string) => void
 }
 
 const TokenComponent: React.FC<TokensProps> = ({ onSend }) => {
@@ -43,14 +43,12 @@ const TokenComponent: React.FC<TokensProps> = ({ onSend }) => {
                                     </div>
                                 </td>
                                 {
-                                    tokenBalances[item.name] ?
-                                        <td className="text-white py-2">{tokenBalances[item.name][currentAddress] | 0}</td> :
-                                        <td className="text-white py-2">0</td>
+                                    <td className="text-white py-2">{tokenBalances?.[token]?.[currentAddress]?.toString() || '0'}</td>
                                 }
                                 <td className="py-2 flex justify-center">
                                     <button
                                         className=" px-3 py-1 bg-white/10 font-Inter font-medium rounded-md cursor-pointer hover:bg-dark-gray-400 transition-colors duration-200"
-                                        onClick={() => onSend(item)}
+                                        onClick={() => onSend(item, token)}
                                     >
                                         SEND
                                     </button>

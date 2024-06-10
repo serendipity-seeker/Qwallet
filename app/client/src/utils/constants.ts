@@ -130,14 +130,21 @@ const assetsItems: AssetItemProps[] = [
         name: 'QU',
         amount: '0',
         percentage: 0,
-        colorClassName: 'bg-[#FB03F5]',
+        colorClassName: 'bg-[#F003F5]',
     },
     {
-        icon: '/assets/images/tokens/qft.svg',
-        name: 'QWALLET',
+        icon: '/assets/images/tokens/cfb.svg',
+        name: 'CFB',
         amount: '0',
         percentage: 0,
         colorClassName: 'bg-[#50AF00]',
+    },
+    {
+        icon: '/assets/images/tokens/qwallet.svg',
+        name: 'QWALLET',
+        amount: '0',
+        percentage: 0,
+        colorClassName: 'bg-[#52AF00]',
     },
     {
         icon: '/assets/images/tokens/qtry.svg',
@@ -166,6 +173,20 @@ const assetsItems: AssetItemProps[] = [
         amount: '0',
         percentage: 0,
         colorClassName: 'bg-[#50AF95]',
+    },
+    {
+        icon: '/assets/images/tokens/mlm.png',
+        name: 'MLM',
+        amount: '0',
+        percentage: 0,
+        colorClassName: 'bg-[#7B03F5]',
+    },
+    {
+        icon: '/assets/images/tokens/qx.png',
+        name: 'QX',
+        amount: '0',
+        percentage: 0,
+        colorClassName: 'bg-[#7B53F5]',
     },
 ]
 
