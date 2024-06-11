@@ -1,4 +1,4 @@
 export enum SettingsItems {
     GENERAL = 'General',
-    ABOUT = 'About Qubic'
+    ABOUT = 'About Qwallet'
 }

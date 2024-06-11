@@ -10,7 +10,7 @@ export type ActiveItems =
     | "General"
     | "Security & Privacy"
     | "Support"
-    | "About Qubic";
+    | "About Qwallet";
 
 const Profile = () => {
     const [activeItem, setActiveItem] = useState<ActiveItems>("General");
